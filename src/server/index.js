@@ -1,18 +1,35 @@
-// Enable sourceMaps in node
-import 'source-map-support/register';
-
-// Import Soundworks library (server side) and server side experience
+import 'source-map-support/register'; // enable sourcemaps in node
 import * as soundworks from 'soundworks/server';
 import PlayerExperience from './PlayerExperience';
+import defaultConfig from './config/default';
 
-// Initialize application with configuration options.
-soundworks.server.init({
-  appName: 'Scorpion',
-  port: 8000,
-  setup: {
-    labels: ['white noise', 'tuba', 'monks', 'organ', 'cornemuse'],
-    maxClientsPerPosition: 20,
-  }
+let config = null;
+
+switch(process.env.ENV) {
+  default:
+    config = defaultConfig;
+    break;
+}
+
+// configure express environment ('production' enables cache systems)
+process.env.NODE_ENV = config.env;
+// initialize application with configuration options
+soundworks.server.init(config);
+
+// define the configuration object to be passed to the `.ejs` template
+soundworks.server.setClientConfigDefinition((clientType, config, httpRequest) => {
+  return {
+    clientType: clientType,
+    env: config.env,
+    appName: config.appName,
+    websockets: config.websockets,
+    version: config.version,
+    defaultType: config.defaultClient,
+    assetsDomain: config.assetsDomain,
+  };
 });
-const experience = new PlayerExperience(['player', 'conductor']);
+
+const experience = new PlayerExperience(['player', 'controller']);
+
 soundworks.server.start();
+

@@ -1,8 +1,7 @@
-// import soundworks client side
 import * as soundworks from 'soundworks/client';
-
-// import player experience
 import PlayerExperience from './PlayerExperience.js';
+import viewTemplates from '../shared/viewTemplates';
+import viewContent from '../shared/viewContent';
 
 // list of files to load (passed to the experience)
 const files = [
@@ -57,12 +56,14 @@ const presets = {
 
 // launch application when document is fully loaded
 window.addEventListener('load', () => {
-  // mandatory configuration options received from the server through the html/default.ejs template
-  const socketIO = window.CONFIG && window.CONFIG.SOCKET_CONFIG;
-  const appName = window.CONFIG && window.CONFIG.APP_NAME;
-
-  // initialize the 'player' client
-  soundworks.client.init('player', { socketIO, appName });
+  // initialize the client with configuration received
+  // from the server through the `index.html`
+  // @see {~/src/server/index.js}
+  // @see {~/html/default.ejs}
+  const config = window.soundworksConfig;
+  soundworks.client.init(config.clientType, config);
+  soundworks.client.setViewContentDefinitions(viewContent);
+  soundworks.client.setViewTemplateDefinitions(viewTemplates);
 
   // create client side (player) experience
   const experience = new PlayerExperience(files, presets);
