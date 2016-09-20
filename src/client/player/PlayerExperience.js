@@ -19,6 +19,8 @@ const viewTemplate = `
 
 const audioFiles = ['white noise', 'monks', 'cornemuse', 'tuba', 'organ'];
 
+const scheduler = soundworks.audio.getSimpleScheduler();
+
 /**
  * `player` experience.
  * This experience plays a sound when it starts, and plays another sound when
@@ -113,7 +115,7 @@ export default class PlayerExperience extends soundworks.Experience {
     this.synth.setResampling(this.preset.synth.resampling);
     this.synth.setResamplingVar(this.preset.synth.resamplingVar);
 
-
+    scheduler.add(this.synth);
   }
 
   processStream(data) {
@@ -141,3 +143,8 @@ export default class PlayerExperience extends soundworks.Experience {
     this.synth.setGain(this.normMagnitude);
   }
 }
+
+
+
+
+

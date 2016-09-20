@@ -11,16 +11,19 @@ function createWhiteNoiseBuffer(length) {
   return buffer;
 }
 
-export default class Synthesizer {
-  constructor(buffers) {
+export default class Synthesizer extends audio.TimeEngine {
+  constructor(buffers, period = 0.05) {
+    super();
+
     this.buffers = [];
     this.buffers[0] = createWhiteNoiseBuffer(2 * audioContext.sampleRate);
     this.buffers = this.buffers.concat(buffers);
     this.bufferIndex = 0;
+    this.period = period;
+    this.gain = 0;
   }
 
   setBuffer(index) {
-    console.log(index);
     this.bufferIndex = index;
   }
 
@@ -33,9 +36,16 @@ export default class Synthesizer {
   }
 
   setGain(val) {
-    val = Math.min(val, 1);
-    val = Math.max(val, 0.001);
-    val *= 0.5;
+    this.gain = val;
+  }
+
+  advanceTime(time) {
+    if (this.gain === 0)
+      return time + this.period;
+
+    let gain = this.gain;
+    gain = Math.min(Math.max(gain, 0.001), 1);
+    gain *= 0.5;
 
     const now = audioContext.currentTime;
     const offset = Math.random() + 1;
@@ -46,7 +56,7 @@ export default class Synthesizer {
     env.connect(audioContext.destination);
     env.gain.value = 0;
     env.gain.setValueAtTime(0, now);
-    env.gain.linearRampToValueAtTime(val, now + attack);
+    env.gain.linearRampToValueAtTime(gain, now + attack);
     env.gain.linearRampToValueAtTime(0, now + duration);
 
     const source = audioContext.createBufferSource();
@@ -58,5 +68,8 @@ export default class Synthesizer {
     // source.resampling = this.resampling + Math.random() * this.resamplingVar;
     source.start(now, offset);
     source.stop(now + duration);
+
+    this.gain = 0;
+    return time + this.period;
   }
 }
